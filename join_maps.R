@@ -1,3 +1,7 @@
+############################################################################## # 
+##### load packages ############################################################
+############################################################################## # 
+
 library(raster)
 library(sf)
 library(magrittr)
@@ -6,14 +10,47 @@ library(units)
 library(stars)
 library(tictoc)
 library(data.table)
+library(job)
 
-# TODO: 
-# - first clean
+############################################################################## # 
+##### settings #################################################################
+############################################################################## # 
+options("datatable.print.class" = TRUE)
+theme_set(theme_bw())
 
+############################################################################## # 
+##### load data #############################################################
+############################################################################## # 
+
+
+filters <- readRDS('./temp_results/filters_HeveaBrasiliensis_S1S2.RData')
+dl <- st_read('./temp_results/cstocks35_crsset_cleaned.shp')
+dl <- st_make_valid(dl)
+st_precision(dl) <- 0
+
+
+filtered_maps <- vector('list', length = length(filters)) %>% 
+  setNames(names(filters))
+for (i in 1:length(filters)) {
+  cat('Filtering with ', names(filters)[i],'\n')
+  st_precision(filters[[i]]) <- 0
+  tic('intersection')
+  filtered_maps[[i]] <- st_intersection(dl, filters[[i]]) 
+  toc()
+}
+# Evaluation error: TopologyException: Input geom 1 is invalid: Too few points in geometry component at or near point 107.84166667 -7.69689625 at 107.84166667 -7.69689625.
+mapview(filtered_maps[[i]])
+mapview(dl)
+saveRDS(filtered_maps, './temp_results/filtered_maps.RData')
+saveRDS(r_list, './temp_results/r_list.RData')
+saveRDS(dl_union, './temp_results/dl_union.RData')
+
+
+
+# junk =================================================================
 
 filter_degraded_land_for <- function(shp, path2rasters, 
                                      tavg_mean = NULL, prec_sum = NULL, slope_tangent = NULL) {
-  shp <- './data/cstocks35_crsset.shp'
   path2rasters <- './temp_results'
   
   filter <- list(
@@ -21,72 +58,6 @@ filter_degraded_land_for <- function(shp, path2rasters,
     prec_sum = c(2000,3500),
     slope_tangent = c(NA, 16)  
   )
-  
-  # load degraded land map (shapefile)
-  dl <- st_read(shp)
-  
-  # check validity
-  valid <- st_is_valid(dl)
-  
-  # 845 iout of 131713 features are invalid
-  invalid_dl <- dl[!valid,]
-  valid_dl <- dl[valid == 'Valid Geometry',]
-  
-  # check reason for invalidity
-  invalid_reasons <- st_is_valid(invalid_dl, reason = TRUE)
-  
-  mapview(invalid_dl[grepl('Hole lies outside shell', invalid_reasons), ])
-  mapview(invalid_dl[38823,] %>% st_buffer(0))
-  
-  # zero buffer
-  invalid_dl_fix1 <- st_buffer(invalid_dl, 0)
-  valid2 <- st_is_valid(invalid_dl_fix1, reason = TRUE)
-  
-  mapview(invalid_dl_fix1)
-  
-  # convert multipolygons to polygons
-  invalid_dl2 <- st_cast(invalid_dl_fix1, 'POLYGON')
-  valid2 <- st_is_valid(invalid_dl2, reason = FALSE) # aha, some polygons got valid now
-  invalid_reasons2 <- st_is_valid(invalid_dl2, reason = TRUE) 
-  
-  invalid_dl3 <- invalid_dl2[!valid2,] # 845 invalid features left
-  
-  # kick out all geometries with an area 0 or negativ
-  invalid_dl3_area <- st_area(invalid_dl3)
-  invalid_dl4 <- invalid_dl3[invalid_dl3_area > set_units(0, m^2),] # 574 invalid features left
-  
-  # repair remaining
-  st_make_valid(invalid_dl4) %>% 
-    st_is_valid()
-  
-  
-  mapview(invalid_dl4)
-  invalid_dl4[420,]$geometry[[1]]
-  st_make_valid(invalid_dl4)[420,]$geometry[[1]]
-  
-  
-  mapview(invalid_dl2[valid2,])
-  
-  invalid_dl3_repaired <- st_simplify(invalid_dl3)
-  mapview(invalid_dl3_repaired)
-  valid3r <- st_is_valid(invalid_dl3_repaired)
-  
-  
-  
-  
-  invalid_dl_repaired <- st_make_valid(invalid_dl)
-  mapview(invalid_dl_repaired)
-  
-  
-  # check empty geometries
-  empty <- st_dimension(dl)
-  
-  # ===
-  dl <- valid_dl
-  dl <- st_set_precision(dl, 1E8)
-  #dl <- st_buffer(dl, 0)
-  #dl <- st_make_valid(dl)
-  
   
   # load rasters
   r_list <- vector('list', length = length(filter)) %>% 
