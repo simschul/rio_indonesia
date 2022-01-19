@@ -11,6 +11,7 @@ library(stars)
 library(tictoc)
 library(data.table)
 library(job)
+library(mapedit)
 
 ############################################################################## # 
 ##### settings #################################################################
@@ -24,30 +25,85 @@ theme_set(theme_bw())
 
 
 filters <- readRDS('./temp_results/filters_HeveaBrasiliensis_S1S2.RData')
-dl <- st_read('./temp_results/cstocks35_crsset_cleaned.shp')
-dl <- st_make_valid(dl)
-st_precision(dl) <- 0
+dl <- st_read('./temp_results/cstocks35_crsset_cleaned100m2.shp')
+#dl <- st_make_valid(dl)
+#st_precision(dl) <- 0
 
+# crop to test code
+point <- c(107.84166667, -7.69689625)
+buffer <- 0.5
+dl <- st_crop(dl, 
+              xmin = point[1] - buffer, 
+              xmax = point[1] + buffer, 
+              ymin = point[2] - buffer, 
+              ymax = point[2] + buffer)
+for (i in 1:length(filters)) {
+  filters[[i]] <- st_crop(filters[[i]], 
+                          xmin = point[1] - buffer, 
+                          xmax = point[1] + buffer, 
+                          ymin = point[2] - buffer, 
+                          ymax = point[2] + buffer)
+  
+}
+
+# end crop
 
 filtered_maps <- vector('list', length = length(filters)) %>% 
   setNames(names(filters))
+
 for (i in 1:length(filters)) {
   cat('Filtering with ', names(filters)[i],'\n')
-  st_precision(filters[[i]]) <- 0
+  # st_precision(filters[[i]]) <- 0
   tic('intersection')
   filtered_maps[[i]] <- st_intersection(dl, filters[[i]]) 
   toc()
 }
-# Evaluation error: TopologyException: Input geom 1 is invalid: Too few points in geometry component at or near point 107.84166667 -7.69689625 at 107.84166667 -7.69689625.
-mapview(filtered_maps[[i]])
-mapview(dl)
+# Evaluation error: TopologyException: Input geom 1 is invalid: 
+# Too few points in geometry component at or near point 
+# 107.84166667 -7.69689625 at 107.84166667 -7.69689625.
+
+mapview(filtered_maps$prec_sum)
+
 saveRDS(filtered_maps, './temp_results/filtered_maps.RData')
 saveRDS(r_list, './temp_results/r_list.RData')
 saveRDS(dl_union, './temp_results/dl_union.RData')
 
+#filtered_maps <- readRDS('./temp_results/filtered_maps.RData')
 
 
 # junk =================================================================
+
+# zoom to problem ============
+point <- c(107.84166667, -7.69689625)
+buffer <- 0.05
+class(dl)
+zoom_area <- st_crop((dl), 
+                     xmin = point[1] - buffer, 
+                     xmax = point[1] + buffer, 
+                     ymin = point[2] - buffer, 
+                     ymax = point[2] + buffer)
+mapview(zoom_area) %>% editMap
+
+st_area(zoom_area)
+plot <- zoom_area %>% 
+  st_cast('MULTILINESTRING') %>%
+  st_cast('LINESTRING') %>% 
+  st_cast('POLYGON') %>%
+  st_area()
+mapview
+st_cast('MULTIPOINT') %>% 
+  plot + mapview(zoom_area, add = TRUE)
+
+st_buffer(-1E-6) %>% 
+  st_area
+st_is_valid()
+st_cast('POLYGON')  
+
+
+
+### #
+
+
 
 filter_degraded_land_for <- function(shp, path2rasters, 
                                      tavg_mean = NULL, prec_sum = NULL, slope_tangent = NULL) {

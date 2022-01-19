@@ -65,7 +65,7 @@ summary(area)
 dl3 <- st_zm(dl3, what = 'ZM')
 
 # retrieve all invalid geometries (not valid OR area smaller than 0.5m2)
-dl2_invalid <- dl3[!valid | area <= set_units(0.5, m^2),] %>%
+dl2_invalid <- dl3[!valid | area <= set_units(100, m^2),] %>%
   as.data.table %>% 
   .[, list(geometry = st_combine(geometry)), by = DN] %>% 
   st_as_sf
@@ -73,7 +73,7 @@ dl2_invalid <- dl3[!valid | area <= set_units(0.5, m^2),] %>%
 mapview(dl2_invalid)
 
 # retrieve all valid geometires
-dl2_valid <- dl3[valid & area > set_units(0.5, m^2),] %>%
+dl2_valid <- dl3[valid & area > set_units(100, m^2),] %>%
   as.data.table %>% 
   .[, list(geometry = st_combine(geometry)), by = DN] %>% 
   st_as_sf
@@ -89,14 +89,22 @@ area_valid / area_total
 area_valid + area_unvalid
 
 # save results
-st_write(dl2_valid, './temp_results/cstocks35_crsset_cleaned.shp')
-st_write(dl2_invalid, './temp_results/cstocks35_crsset_artefacts.shp')
+st_write(dl2_valid, './temp_results/cstocks35_crsset_cleaned100m2.shp')
+st_write(dl2_invalid, './temp_results/cstocks35_crsset_artefacts100m2.shp')
 
 # plot results
 mapview(dl2_valid) # takes long time
 mapview(dl2_invalid) # takes long time
 
 
+point <- c(107.84166667, -7.69689625)
+buffer <- 0.05
+zoom_area <- st_crop((dl2_valid), 
+                     xmin = point[1] - buffer, 
+                     xmax = point[1] + buffer, 
+                     ymin = point[2] - buffer, 
+                     ymax = point[2] + buffer)
+mapview(zoom_area)
 #### junk ======================================================================
 
 dl2_invalid2 <- dl2_invalid %>% 
