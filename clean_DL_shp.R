@@ -97,6 +97,11 @@ mapview(dl2_valid) # takes long time
 mapview(dl2_invalid) # takes long time
 
 
+
+##------------------
+dl2_valid <- st_read('./temp_results/cstocks35_crsset_cleaned100m2.shp')
+
+
 point <- c(107.84166667, -7.69689625)
 buffer <- 0.05
 zoom_area <- st_crop((dl2_valid), 
@@ -105,6 +110,15 @@ zoom_area <- st_crop((dl2_valid),
                      ymin = point[2] - buffer, 
                      ymax = point[2] + buffer)
 mapview(zoom_area)
+
+library(fasterize)
+r1 <- zoom_area %>% 
+  st_cast('MULTIPOLYGON') %>% 
+  fasterize(., raster(zoom_area, nrows = 1000, ncol = 1000)) 
+
+
+mapview(r1) + mapview(zoom_area)
+
 #### junk ======================================================================
 
 dl2_invalid2 <- dl2_invalid %>% 

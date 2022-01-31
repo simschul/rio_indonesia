@@ -18,11 +18,29 @@ r2 <- raster::crop(r1, indonesia)
 r3 <- raster::mask(r2, indonesia)
 
 # calculate slope 
-r4 <- raster::terrain(r3, 'slope', 'tengent')
+r4 <- raster::terrain(r3, 'slope', 'tangent')
 
 r5 <- rast(r4)
 
-#TODO: there is an outer 'ring' with missing (NA) cells between the raster and the indonesian borders. Comes from the 'terrain' function that uses 8 neighbouring cells to compute the slope -> does not work for boundary cells. Solution: create buffer around the raster
+# begin test
+grid <- st_make_grid(indonesia, n = 20)
+grid <- grid[indonesia]
+
+r6 <- raster::crop(r4, st_bbox(grid[1,]))
+
+mapview(r6)
+r7 <- raster::buffer(r6, width =3000) 
+r7 <- terra::buffer(rast(r6), width = res(r5)[1]*2) 
+mapview(r6) + mapview(r7)
+res(r5)
+
+# end 
+
+
+#TODO: there is an outer 'ring' with missing (NA) cells between the raster and 
+# the indonesian borders. Comes from the 'terrain' function that uses 
+# 8 neighbouring cells to compute the slope 
+# -> does not work for boundary cells. Solution: create buffer around the raster
 r6 <- buffer(r5, width = res(r5)[1]) 
 
 mapview(r4)

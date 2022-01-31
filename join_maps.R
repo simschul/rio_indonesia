@@ -17,7 +17,6 @@ library(mapedit)
 ##### settings #################################################################
 ############################################################################## # 
 options("datatable.print.class" = TRUE)
-theme_set(theme_bw())
 
 ############################################################################## # 
 ##### load data #############################################################
@@ -25,25 +24,29 @@ theme_set(theme_bw())
 
 
 filters <- readRDS('./temp_results/filters_HeveaBrasiliensis_S1S2.RData')
-dl <- st_read('./temp_results/cstocks35_crsset_cleaned100m2.shp')
+
+dl <- st_read('./temp_results/cstocks35_fixed_200122_cleaned100m2.shp')
+
+#dl <- st_read('./temp_results/cstocks35_crsset_cleaned100m2.shp')
 #dl <- st_make_valid(dl)
 #st_precision(dl) <- 0
 
 # crop to test code
-point <- c(107.84166667, -7.69689625)
-buffer <- 0.5
-dl <- st_crop(dl, 
-              xmin = point[1] - buffer, 
-              xmax = point[1] + buffer, 
-              ymin = point[2] - buffer, 
+# point <- c(107.84166667, -7.69689625)
+point <- c(97, 3.7)
+buffer <- 2
+dl <- st_crop(dl,
+              xmin = point[1] - buffer,
+              xmax = point[1] + buffer,
+              ymin = point[2] - buffer,
               ymax = point[2] + buffer)
 for (i in 1:length(filters)) {
-  filters[[i]] <- st_crop(filters[[i]], 
-                          xmin = point[1] - buffer, 
-                          xmax = point[1] + buffer, 
-                          ymin = point[2] - buffer, 
+  filters[[i]] <- st_crop(filters[[i]],
+                          xmin = point[1] - buffer,
+                          xmax = point[1] + buffer,
+                          ymin = point[2] - buffer,
                           ymax = point[2] + buffer)
-  
+
 }
 
 # end crop
@@ -55,18 +58,33 @@ for (i in 1:length(filters)) {
   cat('Filtering with ', names(filters)[i],'\n')
   # st_precision(filters[[i]]) <- 0
   tic('intersection')
-  filtered_maps[[i]] <- st_intersection(dl, filters[[i]]) 
+  filtered_maps[[i]] <- st_intersection(dl, filters[[i]])
+  saveRDS(filtered_maps[[i]], 
+          paste0('./temp_results/cstocks35_fixed_200122_cleaned100m2_filtered_', 
+                 names(filters)[i], 
+                 '.RData'))
   toc()
 }
 # Evaluation error: TopologyException: Input geom 1 is invalid: 
 # Too few points in geometry component at or near point 
 # 107.84166667 -7.69689625 at 107.84166667 -7.69689625.
 
-mapview(filtered_maps$prec_sum)
+temp <- filtered_maps$tavg_mean %>%
+  st_collection_extract('POLYGON')
+mapview(temp)
+mapview(filters$tavg_mean %>% st_collection_extract('POLYGON'))
 
-saveRDS(filtered_maps, './temp_results/filtered_maps.RData')
-saveRDS(r_list, './temp_results/r_list.RData')
-saveRDS(dl_union, './temp_results/dl_union.RData')
+  st_cast('MULTIPOLYGON') %>% 
+  st_cast('POLYGON') %>% 
+  st_cast('MULTILINESTRING') %>%
+  st_cast('LINESTRING') %>% 
+  st_cast('POLYGON') 
+
+saveRDS(filtered_maps, './temp_results/cstocks35_fixed_200122_cleaned100m2_filtered.RData')
+
+
+#saveRDS(r_list, './temp_results/r_list.RData')
+#saveRDS(dl_union, './temp_results/dl_union.RData')
 
 #filtered_maps <- readRDS('./temp_results/filtered_maps.RData')
 
