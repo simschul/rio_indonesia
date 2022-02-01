@@ -16,8 +16,10 @@ batch_job <- paste0('rio_indonesia', '.sh')
 (session <- ssh_connect(ssh_address, verbose = TRUE))
 
 # 0.b Install packages --------------------------------------------------------
-my.utils::ssh_install_packages(session, c('sf'))
-
+my.utils::ssh_install_packages(session, c('rgdal'))
+my.utils::ssh_install_packages(session, c('units'))
+my.utils::ssh_install_packages(session, c('udunits2'))
+install.packages()
 
 # 1. Update file on server -----------------------------------------------------
 scp_upload(session, files = files_local, to = file.path(rio_indonesia))

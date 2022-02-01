@@ -33,7 +33,7 @@ theme_set(theme_bw())
 ############################################################################## # 
 
 # set path to shapefile
-shp <- './data/cstocks35_crsset.shp'
+shp <- './data/GIS Map_Rio_200122-20220125T164332Z-001/GIS Map_Rio_200122/cstocks35_fixed_200122.shp'
 
 # load degraded land map 
 dl <- st_read(shp)
