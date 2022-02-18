@@ -38,7 +38,10 @@ path2rasters <- './temp_results'
 filter <- list(
   tavg_mean = c(24,34),
   prec_sum = c(2000,3500),
-  slope_tangent = c(NA, 16)  
+  slope_tangent = c(NA, 16), 
+  soil_REF_DEPTH = c(2, 100), 
+  soil_T_PH_H2O = c(6, 9), 
+  soil_S_PH_H2O = c(6, 9)
 )
 
 # filter all rasters according to filterlist ===================================
@@ -71,7 +74,18 @@ for (i in 1:length(filter)) {
 # create one raster filter that combines all 3 other filters ===================
 
 # convert to terra raster
-r_list2 <- lapply(r_list, rast)
+#r_list2 <- lapply(r_list, rast) # not working somehow
+
+# quick and dirty fix: 
+tempdir <- tempdir()
+for (i in 1:length(r_list)) {
+  writeRaster(r_list[[i]], file.path(tempdir, paste0(names(r_list)[i], '.tif')))
+}
+r_list2 = lapply(1:length(r_list), function(x) {
+    rast(file.path(tempdir, paste0(names(r_list)[i], '.tif')))
+  })
+names(r_list2) = names(r_list)
+
 
 # extend the slope raster
 r_list2$slope_tangent <- terra::extend(r_list2$slope_tangent,
@@ -81,7 +95,7 @@ r_stack <- rast(r_list2)
 
 # create 4th raster that combines the other 3
 r_stack2 <- terra::app(r_stack, function(x) {
-  ifelse(sum(is.finite(x)) == 3, 
+  ifelse(sum(is.finite(x)) == length(x), 
          1, 
          NA)
 })
