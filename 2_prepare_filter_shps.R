@@ -38,10 +38,10 @@ path2rasters <- './temp_results'
 filter <- list(
   tavg_mean = c(24,34),
   prec_sum = c(2000,3500),
-  slope_tangent = c(NA, 16), 
-  soil_REF_DEPTH = c(2, 100), 
-  soil_T_PH_H2O = c(6, 9), 
-  soil_S_PH_H2O = c(6, 9)
+  slope_tangent = c(0, 16), 
+  soil_REF_DEPTH = c(75, 150), 
+  soil_T_PH_H2O = c(4.5, 6.5),
+  soil_S_PH_H2O = c(4.5, 6.5)
 )
 
 # filter all rasters according to filterlist ===================================
@@ -79,10 +79,12 @@ for (i in 1:length(filter)) {
 # quick and dirty fix: 
 tempdir <- tempdir()
 for (i in 1:length(r_list)) {
-  writeRaster(r_list[[i]], file.path(tempdir, paste0(names(r_list)[i], '.tif')))
+  raster::writeRaster(r_list[[i]], file.path(tempdir, paste0(names(r_list)[i], '.tif')), 
+                      overwrite = TRUE)
+  cat(i, '')
 }
 r_list2 = lapply(1:length(r_list), function(x) {
-    rast(file.path(tempdir, paste0(names(r_list)[i], '.tif')))
+    rast(file.path(tempdir, paste0(names(r_list)[x], '.tif')))
   })
 names(r_list2) = names(r_list)
 
@@ -90,6 +92,14 @@ names(r_list2) = names(r_list)
 # extend the slope raster
 r_list2$slope_tangent <- terra::extend(r_list2$slope_tangent,
                                        r_list$tavg_mean)
+
+
+for (i in 2:length(r_list2)) {
+  r_list2[[i]] <- resample(r_list2[[i]], r_list2[[1]])
+  cat(i, '')
+}
+
+lapply(r_list2, ext)
 # combine all 3 as stack
 r_stack <- rast(r_list2)
 
@@ -135,7 +145,7 @@ for (i in 1:length(shp_list)) {
 # save results
 saveRDS(shp_list, './temp_results/filters_HeveaBrasiliensis_S1S2.RData')
 
-
+mapview(shp_list)
 
 # for (i in 1:length(v)) {
 #   st_write(shp_list[[i]], paste0('./temp_results/filter_', 
