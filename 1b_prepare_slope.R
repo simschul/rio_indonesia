@@ -10,16 +10,25 @@ path2temp_results <- './temp_results'
 # load Indonesian boarder as shapefiles (as provided by Rio)
 indonesia <- st_read(file.path(path2data, 'IDN_adm0', 'IDN_adm0.shp'))
 
-# load altitude raster for indonesia
-r1 <- getData('alt', country = 'Indonesia')
+# load altitude raster for indonesia and neigbouring countries
+r_list <- lapply(c('Indonesia', 'Malaysia', 'East Timor', 'Papua New Guinea'), 
+                 function(x) {
+                   getData('alt', country = x)
+                 })
+r1 <- do.call('merge', r_list)
 
-# clip RasterStack to indonesian borders
-r2 <- raster::crop(r1, indonesia)
-r3 <- raster::mask(r2, indonesia)
+# st_crs(indonesia)
+# raster::crs(r1)
+# raster::projectRaster(r1, crs = st_crs(indonesia))
+# set all NA values (should all be within ocean) to 0. Reason: avoid getting ring of NA cells when calc the slope
+r1[is.na(r1)] <- 0
 
 # calculate slope 
-r4 <- raster::terrain(r3, 'slope', 'tangent')
+r2 <- raster::terrain(r1, 'slope', 'tangent')
 
+# clip RasterStack to indonesian borders
+r3 <- raster::crop(r2, indonesia)
+r4 <- raster::mask(r3, indonesia)
 
 
 #TODO: there is an outer 'ring' with missing (NA) cells between the raster and 
@@ -31,5 +40,5 @@ r4 <- raster::terrain(r3, 'slope', 'tangent')
 
 mapview(r4)
 
-writeRaster(r4, file.path(path2temp_results, 'slope_tangent.tif'), 
-            overwrite = FALSE)
+raster::writeRaster(r4, file.path(path2temp_results, 'slope_tangent.tif'), 
+            overwrite = TRUE)

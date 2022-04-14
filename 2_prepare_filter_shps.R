@@ -38,8 +38,8 @@ path2rasters <- './temp_results'
 filter <- list(
   tavg_mean = c(24,34),
   prec_sum = c(2000,3500),
-  slope_tangent = c(0, 16), 
-  soil_REF_DEPTH = c(75, 150), 
+  slope_tangent = c(0, 0.16), 
+  soil_REF_DEPTH = c(75, Inf), # 150
   soil_T_PH_H2O = c(4.5, 6.5),
   soil_S_PH_H2O = c(4.5, 6.5)
 )
@@ -90,12 +90,12 @@ names(r_list2) = names(r_list)
 
 
 # extend the slope raster
-r_list2$slope_tangent <- terra::extend(r_list2$slope_tangent,
-                                       r_list$tavg_mean)
-
-
-for (i in 2:length(r_list2)) {
-  r_list2[[i]] <- resample(r_list2[[i]], r_list2[[1]])
+# r_list2$slope_tangent <- terra::extend(r_list2$slope_tangent,
+#                                        r_list$tavg_mean)
+# 
+# 
+for (i in 1:(length(r_list2)-1)) {
+  r_list2[[i]] <- resample(r_list2[[i]], r_list2[[length(r_list2)]])
   cat(i, '')
 }
 
