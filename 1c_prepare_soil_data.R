@@ -11,7 +11,7 @@ extend <- st_bbox(indonesia)
 extend <- c(extend[2], extend[1], extend[4], extend[3])
 
 # specify parameters here, see: https://daac.ornl.gov/SOILS/guides/HWSD.html, table 1
-params <- c("REF_DEPTH", 'T_PH_H2O', 'S_PH_H2O') 
+params <- c("REF_DEPTH", 'T_PH_H2O', 'S_PH_H2O', 'T_CEC_CLAY', 'T_OC') 
 
 # Download soil data from HWSDR
 soil_data <- ws_subset(
@@ -24,7 +24,7 @@ soil_data <- ws_subset(
 names(soil_data) <- params
 
 # plot results
-mapview(soil_data)
+#mapview(soil_data)
 
 # write raster files sepeartely to disk
 for (i in 1:length(params)) {
