@@ -113,17 +113,29 @@ dl_filtered <- pbmclapply(1:nrow(par_comb), function(x) {
   return(result)
 }, mc.cores = min(6, nrow(par_comb)))
 
-
-# analyse results ===============================
-
+# 3. Calculate area ============================================================
 files <- list.files('./results', 'DL_filtered_combined.RData', recursive = TRUE, 
-           full.names = TRUE)
-
+                    full.names = TRUE)
+files <- files[grepl('S1_S2',files)]
 data <- lapply(files, readRDS)
-names(data) <- files
-lapply(data, class)
+data <- lapply(data, st_make_valid)
+dl_filtered <- data
+species <- stringr::str_split(files, '/', simplify = TRUE)[,c(3, 4)]
+species <- paste0(species[,1], '-', species[,2])
+names(data) <- species
 
-lapply(data, function(x) sum(st_area(x)) %>% units::set_units(ha))
+
+
+dl_areas <- pbmclapply(1:nrow(par_comb), function(x) {
+  path <- file.path('results', par_comb[x,1], par_comb[x,2])
+  result <- as.data.table(dl_filtered[[x]])
+  result[, area := st_area(geometry)]
+  result <- result[, list(area_m2 = sum(area) %>% as.numeric), by = DN]
+  setorderv(result, 'DN')
+  rio::export(result, file.path(path, 'area_by_DN_and_variable.xlsx'))
+  return(result)
+}, mc.cores = min(6, nrow(par_comb)))
+
 
 
 
