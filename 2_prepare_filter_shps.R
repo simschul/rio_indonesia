@@ -80,7 +80,7 @@ pars$Tectona_grandis$S1_S2 <- list(
   soil_T_PH_H2O = c(5, 7.5),
   #soil_S_PH_H2O = c(5.5, 7), 
   soil_T_CEC_CLAY = c(5, Inf), 
-  soil_T_OC = c(2, Inf)
+  soil_T_OC = c(0, Inf)
 )
 
 # pars$Tectona_grandis$S2 <- list(

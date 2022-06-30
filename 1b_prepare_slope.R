@@ -38,7 +38,7 @@ r4 <- raster::mask(r3, indonesia)
 #r5 <- rast(r4)
 #r6 <- buffer(r5, width = res(r5)[1]) 
 
-mapview(r4)
+#mapview(r4)
 
 raster::writeRaster(r4, file.path(path2temp_results, 'slope_tangent.tif'), 
             overwrite = TRUE)

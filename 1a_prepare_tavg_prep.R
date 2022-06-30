@@ -40,7 +40,7 @@ plot(r)
 plot(indonesia, add = TRUE, alpha = 0.3, fill = NA, col = NA)
 
 # nice interactive plot 
-mapview::mapview(r, maxpixels =  11318050)
+#mapview::mapview(r, maxpixels =  11318050)
 
 # save final raster
 writeRaster(r, file.path('temp_results', 'prec_sum.tif'), 
