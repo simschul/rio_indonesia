@@ -105,7 +105,10 @@ suitability_classes <- c('S1_S2')
 par_comb <- expand.grid(specie = species, suitability_class = suitability_classes)
 
 dl_filtered <- pbmclapply(1:nrow(par_comb), function(x) {
-  path <- file.path('results', par_comb[x,1], par_comb[x,2])
+  details = file.info(list.dirs('results', recursive = FALSE))
+  details = details[with(details, order(as.POSIXct(ctime), decreasing = TRUE)), ]
+  
+  path <- file.path(rownames(details)[1], par_comb[x,1], par_comb[x,2])
   filter <- readRDS(file.path(path, 
                               'filters.RData'))
   result <- filter_degraded_land_map(dl, filter, 

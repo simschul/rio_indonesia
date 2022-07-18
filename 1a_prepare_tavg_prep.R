@@ -5,7 +5,6 @@ library(magrittr)
 
 path2data <- './data'
 
-
 get_data_for_indonesia <- function(root_dir, type = c('prec', 'tavg')) {
   # load Indonesian boarder as shapefiles (as provided by Rio)
   indonesia <- st_read(file.path(root_dir, 'IDN_adm0', 'IDN_adm0.shp'))
@@ -33,18 +32,24 @@ get_data_for_indonesia <- function(root_dir, type = c('prec', 'tavg')) {
   return(r4)
 }
 
-r <- get_data_for_indonesia(path2data, 'prec')
+
+prec <- get_data_for_indonesia(path2data, 'prec')
+tavg <- get_data_for_indonesia(path2data, 'tavg')
 
 # plot results
-plot(r)
-plot(indonesia, add = TRUE, alpha = 0.3, fill = NA, col = NA)
+#plot(prec)
+#plot(indonesia, add = TRUE, alpha = 0.3, fill = NA, col = NA)
 
 # nice interactive plot 
-#mapview::mapview(r, maxpixels =  11318050)
+#mapview::mapview(prec, maxpixels =  11318050)
 
 # save final raster
-writeRaster(r, file.path('temp_results', 'prec_sum.tif'), 
-            overwrite = FALSE)
+writeRaster(prec, file.path('temp_results', 'prec_sum.tif'), 
+            overwrite = TRUE)
 
+writeRaster(tavg, file.path('temp_results', 'tavg_mean.tif'), 
+            overwrite = TRUE)
 
 # END
+
+

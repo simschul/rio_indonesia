@@ -27,10 +27,12 @@ library(pbmcapply)
 ##### settings #################################################################
 ############################################################################## # 
 options("datatable.print.class" = TRUE)
-theme_set(theme_bw())
+
 
 species <- c("Acacia_auriculiformis", 'Tectona_grandis', 'Hevea_brasiliensis')
 suitability_classes <- c('S1_S2')
+
+
 ############################################################################## # 
 ##### load data #############################################################
 ############################################################################## # 
@@ -207,7 +209,10 @@ par_comb <- expand.grid(specie = species, suitability_class = suitability_classe
 
 filters <- pbmclapply(1:nrow(par_comb), function(i) {
   # create directory for results if not already existing
-  dir <- file.path('results', par_comb[i,1], par_comb[i,2])
+  dir <- file.path('results', 
+                   paste0('results_',  gsub(' ', '_', Sys.time())) ,
+                   par_comb[i,1], 
+                   par_comb[i,2])
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
   
   # run create filter function
@@ -233,6 +238,7 @@ filters <- pbmclapply(1:nrow(par_comb), function(i) {
   
   return(filter_shps)
 }, mc.cores = 3)
+
 
 
 ### end 
