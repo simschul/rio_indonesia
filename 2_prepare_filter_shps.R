@@ -207,10 +207,15 @@ create_filters <- function(
 par_comb <- expand.grid(specie = species, suitability_class = suitability_classes)
 
 
+path2results <- file.path('results', paste0('results_', 
+                              Sys.time() %>% 
+                                gsub(' ', '_', .) %>% 
+                                gsub('\\:', '-', .)
+                              ))
+  
 filters <- pbmclapply(1:nrow(par_comb), function(i) {
   # create directory for results if not already existing
-  dir <- file.path('results', 
-                   paste0('results_',  gsub(' ', '_', Sys.time())) ,
+  dir <- file.path(path2results,
                    par_comb[i,1], 
                    par_comb[i,2])
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
@@ -231,6 +236,8 @@ filters <- pbmclapply(1:nrow(par_comb), function(i) {
              append = FALSE)
     return(j)
   })
+
+  
   names(filter_shps) <- names(filter_rasters)
   
   # save results
